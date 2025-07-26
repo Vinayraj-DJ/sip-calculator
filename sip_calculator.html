@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SIP Calculator</title>
+  <style>
+    body {
+      font-family: Arial;
+      max-width: 500px;
+      margin: 20px auto;
+    }
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    input[type=number], input[type=range] {
+      flex: 1;
+      padding: 8px;
+    }
+    .error {
+      color: red;
+      font-size: 0.9em;
+    }
+    .result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>SIP Calculator</h2>
+
+  <form id="sipForm">
+    <label>Monthly Investment (₹)</label>
+    <div class="input-group">
+      <input type="range" id="monthlySlider" min="500" max="1000000" step="500" value="5000" oninput="syncSlider('monthly', this.value)">
+      <input type="number" id="monthly" value="5000" min="500" max="1000000" oninput="syncInput('monthlySlider', this.value)">
+    </div>
+    <span class="error" id="monthlyError"></span>
+
+    <label>Expected Return Rate (p.a %)</label>
+    <div class="input-group">
+      <input type="range" id="rateSlider" min="1" max="30" step="0.1" value="10" oninput="syncSlider('rate', this.value)">
+      <input type="number" id="rate" value="10" step="0.1" min="1" max="30" oninput="syncInput('rateSlider', this.value)">
+    </div>
+    <span class="error" id="rateError"></span>
+
+    <label>Time Period (Years)</label>
+    <div class="input-group">
+      <input type="range" id="yearsSlider" min="1" max="50" value="10" oninput="syncSlider('years', this.value)">
+      <input type="number" id="years" value="10" min="1" max="50" oninput="syncInput('yearsSlider', this.value)">
+    </div>
+    <span class="error" id="yearsError"></span>
+
+    <button type="submit">Calculate</button>
+  </form>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function syncSlider(id, val) {
+      document.getElementById(id).value = val;
+    }
+
+    function syncInput(sliderId, val) {
+      document.getElementById(sliderId).value = val;
+    }
+
+    document.getElementById('sipForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const monthly = parseFloat(document.getElementById('monthly').value);
+      const rate = parseFloat(document.getElementById('rate').value);
+      const years = parseInt(document.getElementById('years').value);
+
+      document.getElementById('monthlyError').textContent = "";
+      document.getElementById('rateError').textContent = "";
+      document.getElementById('yearsError').textContent = "";
+
+      let valid = true;
+
+      if (monthly < 500 || monthly > 1000000) {
+        document.getElementById('monthlyError').textContent = "₹500–₹10,00,000 only.";
+        valid = false;
+      }
+      if (rate < 1 || rate > 30) {
+        document.getElementById('rateError').textContent = "Rate must be 1%–30%.";
+        valid = false;
+      }
+      if (years < 1 || years > 50) {
+        document.getElementById('yearsError').textContent = "Years must be 1–50.";
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      const months = years * 12;
+      const monthlyRate = rate / 100 / 12;
+      const futureValue = monthly * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+      const investedAmount = monthly * months;
+      const estimatedReturns = futureValue - investedAmount;
+
+      document.getElementById('result').innerHTML = `
+        <p>Invested Amount: ₹${investedAmount.toLocaleString()}</p>
+        <p>Estimated Returns: ₹${estimatedReturns.toLocaleString()}</p>
+        <p>Total Value: ₹${futureValue.toLocaleString()}</p>
+      `;
+    });
+  </script>
+</body>
+</html>
